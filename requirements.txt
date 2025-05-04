@@ -6,3 +6,4 @@ langchain-core
 openai
 langchain-ollama
 streamlit
+faiss-cpu
