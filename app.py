@@ -1,6 +1,6 @@
 import streamlit as st
-from load_models import load_models
-from load_documents import text_loader
+#from load_models import load_models
+#from load_documents import text_loader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -72,7 +72,7 @@ def select_loader(file, file_type):
     return loader
 
 import streamlit as st
-from load_documents import select_loader
+#from load_documents import select_loader
 
 
 def draw_sidebar():
