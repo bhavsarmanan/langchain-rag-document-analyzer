@@ -47,8 +47,10 @@ if loader is not None:
     
     # Get embeddings for each chunk of text
     #embedded_texts = [embeddings.embed_query(text.page_content) for text in texts]
-
+    print("Ingesting context...")
     vectorstore = ingest_in_faiss(texts, embeddings)
+
+    print("Initiate prompt template...")
     retrival_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
 
     #custom_rag_prompt = custom_template()
@@ -72,11 +74,13 @@ if loader is not None:
     selected_model = st.radio(":blue[Select the model]", options=models,horizontal=True )
     #st.write(models)
     llm = ChatOllama(model=selected_model)
-    rag_chain = (
-                    {"context": vectorstore.as_retriever() | format_docs,"question":RunnablePassthrough()}
-                    | custom_rag_prompt
-                    | llm 
-                )
+    #alternate implmentation which is currently commented
+    #rag_chain = (
+    #                {"context": vectorstore.as_retriever() | format_docs,"question":RunnablePassthrough()}
+    #                | custom_rag_prompt
+    #                | llm 
+    #            )
+   
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -94,8 +98,9 @@ if loader is not None:
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
 
-        res = rag_chain.invoke(prompt)
-        #res = invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_prompt)
+        #alternate way of invokding chain which is currently commented
+        #res = rag_chain.invoke(prompt)
+        res = invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_prompt)
         #st.write(res)
                 
 
@@ -103,7 +108,7 @@ if loader is not None:
         # Display assistant response in chat message container
         with st.chat_message("ai"):
             #output = res['answer']
-            output = res
+            output = res['answer'] + "\n\n" +':blue[response powered by ' + selected_model +']'
             st.markdown(output)
             
         st.session_state.messages.append({"role": "assistant", "content": output})
