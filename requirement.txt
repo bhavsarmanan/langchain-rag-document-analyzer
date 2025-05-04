@@ -1,8 +1,8 @@
-pandas = "*"
-langchain = "*"
-langchain-community = "*"
-langchainhub = "*"
-langchain-core = "*"
-openai = "*"
-langchain-ollama = "*"
-streamlit = "*"
+pandas
+langchain
+langchain-community
+langchainhub
+langchain-core
+openai
+langchain-ollama
+streamlit
