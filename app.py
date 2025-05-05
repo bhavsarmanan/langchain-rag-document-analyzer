@@ -1,5 +1,5 @@
 import streamlit as st
-#from load_models import load_models
+from load_models import load_models
 #from load_documents import text_loader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
@@ -14,122 +14,12 @@ from langchain_core.runnables import RunnablePassthrough
 #from langchain_community.hub import pull as hub_pull
 
 #defined functions
-#from ingest_main import ingest_in_faiss
-#from create_template import custom_template
-#from design_page import draw_sidebar
-#from invoke_main import invoke_llm
-
-import subprocess
-
-def load_models():
+from ingest_main import ingest_in_faiss
+from create_template import custom_template
+from design_page import draw_sidebar
+from invoke_main import invoke_llm
 
 
-    model_list = subprocess.run(['ollama', 'list'], 
-                                capture_output=True, 
-                                text=True)
-        
-    lines = model_list.stdout.strip().split('\n')
-
-    models = []
-    for line in lines[1:]:  # Skip the header line
-        if line.strip():  # Check if line is not empty
-            model_name = line.split()[0]
-            if  model_name.split(':')[0] != 'qwen3' and model_name.split(':')[0] != 'snowflake-arctic-embed2' and model_name.split(':')[0] != 'mxbai-embed-large': # First column is model name
-                models.append(model_name.split(':')[0])
-            if model_name.split(':')[0] == 'qwen3':
-                models.append(model_name)
-
-
-
-    return models
-
-
-from langchain_community.document_loaders import TextLoader
-from langchain_community.document_loaders import PyPDFLoader
-import streamlit as st
-import tempfile
-import os
-
-def text_loader(file) -> TextLoader:
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.txt') as tmp_file:
-        tmp_file.write(file.getvalue())
-        tmp_path = tmp_file.name
-    return TextLoader(tmp_path)
-
-def pdf_loader(file) -> PyPDFLoader:
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-        tmp_file.write(file.getvalue())
-        tmp_path = tmp_file.name
-    return PyPDFLoader(tmp_path)
-
-def select_loader(file, file_type):
-    if file_type == "PDF":
-        loader = pdf_loader(file)
-    elif file_type == "Text File":
-        loader = text_loader(file)
-    return loader
-
-import streamlit as st
-#from load_documents import select_loader
-
-
-def draw_sidebar():
-    st.sidebar.title("Upload document to be analyzed")
-    selection = st.sidebar.selectbox("Documents that you can upload", ["PDF", "Text File"])
-
-    if st.sidebar.button("Clear chat history"):
-        st.session_state.messages = []
-
-    if selection == "PDF":
-        file = st.sidebar.file_uploader("Upload a file", type=["pdf"])
-    elif selection == "Text File":
-        file = st.sidebar.file_uploader("Upload a file", type=["txt"])
-
-    if file is not None:
-        loader = select_loader(file, selection)
-        return loader
-    else:
-        st.sidebar.error("Please upload a file")
-
-
-from langchain_community.vectorstores import FAISS
-from langchain_community.docstore import InMemoryDocstore
-from uuid import uuid4
-import faiss
-
-
-def ingest_in_faiss(texts, embeddings):
-
-    #print(texts)
-
-    index = faiss.IndexFlatL2(len(embeddings.embed_query("Hello World")))
-    vector_store = FAISS(
-    embedding_function=embeddings,
-    index=index,
-    docstore=InMemoryDocstore(),
-    index_to_docstore_id={},
-    )
-
-    uuids = [str(uuid4()) for _ in range(len(texts))]
-
-    #vector_store.add_documents(documents=texts, ids=uuids)
-    vector_store.from_documents(documents=texts,embedding=embeddings)
-    
-    vectorstore = FAISS.from_documents(documents=texts,embedding=embeddings)
-    #vectorstore = FAISS.add_documents(documents=texts,ids=uuids,embedding=embeddings)
-    return vectorstore
-
-from langchain import hub
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains.retrieval import create_retrieval_chain
-
-def invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_prompt):
-    stuff_document_chain = create_stuff_documents_chain(llm,retrival_qa_chat_prompt)
-    qa = create_retrieval_chain(retriever=vectorstore.as_retriever(),combine_docs_chain=stuff_document_chain)
-    response = qa.invoke(input={'input':prompt})
-    return response
 
 def format_docs(documents):
     return "\n\n".join(documents.page_content for documents in documents)
@@ -163,6 +53,7 @@ if loader is not None:
 
     print("Initiate prompt template...")
     retrival_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
+    retrival_qa_chat_history_prompt = hub.pull("langchain-ai/chat-langchain-rephrase")
 
     #custom_rag_prompt = custom_template()
     #docsearch = FAISS(embedding_function=embeddings,index_name="rag_index",docstore=InMemoryDocstore({}))
@@ -211,7 +102,8 @@ if loader is not None:
 
         #alternate way of invokding chain which is currently commented
         #res = rag_chain.invoke(prompt)
-        res = invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_prompt)
+        #res = invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_prompt,st.session_state.message)
+        res=invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_history_prompt,st.session_state)
         #st.write(res)
                 
 
