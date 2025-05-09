@@ -3,14 +3,14 @@ from load_models import load_models
 #from load_documents import text_loader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
-from langchain_community.vectorstores import FAISS
+#from langchain_community.vectorstores import FAISS
 
 from langchain_ollama import ChatOllama
 
 
 from langchain import hub
 from langchain.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
+#from langchain_core.runnables import RunnablePassthrough
 #from langchain_community.hub import pull as hub_pull
 
 #defined functions
@@ -53,23 +53,13 @@ if loader is not None:
 
     print("Initiate prompt template...")
     retrival_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
-    retrival_qa_chat_history_prompt = hub.pull("langchain-ai/chat-langchain-rephrase")
+    #retrival_qa_chat_history_prompt = hub.pull("langchain-ai/chat-langchain-rephrase")
 
     #custom_rag_prompt = custom_template()
     #docsearch = FAISS(embedding_function=embeddings,index_name="rag_index",docstore=InMemoryDocstore({}))
 
     #custom_rag_prompt = PromptTemplate.from_template(custom_template)
-    template = """ answer the quesition with just 1 or 2 sentences max.
 
-            Also your name is Siri
-
-    {context}
-
-    question: {question}    
-
-    answer:"""
-
-    custom_rag_prompt = PromptTemplate.from_template(template)
 
 #draw_sidebar()
 
@@ -102,8 +92,8 @@ if loader is not None:
 
         #alternate way of invokding chain which is currently commented
         #res = rag_chain.invoke(prompt)
-        #res = invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_prompt,st.session_state.message)
-        res=invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_history_prompt,st.session_state)
+        res = invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_prompt)
+        #res=invoke_llm(llm,vectorstore,prompt,retrival_qa_chat_history_prompt,st.session_state)
         #st.write(res)
                 
 
